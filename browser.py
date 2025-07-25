@@ -6,7 +6,6 @@ from datetime import datetime, timedelta
 import time
 import hashlib
 import json
-import resend
 
 # 配置页面
 st.set_page_config(
