@@ -17,7 +17,7 @@ st.set_page_config(
 
 # Resend 配置 - 请替换为你的实际API密钥
 RESEND_API_KEY = "re_djRrz4Q6_L2zJ552GpMfaYBoMkC9eyL3o"
-SENDER_EMAIL = "noreply@yourdomain.com"  # 替换为你验证的发送邮箱域名
+SENDER_EMAIL = "noreply@us1337.com"  # 替换为你验证的发送邮箱域名
 
 class EmailVerification:
     def __init__(self):
