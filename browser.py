@@ -295,7 +295,7 @@ if 'browser_history' not in st.session_state:
 
 # 配置信息
 CORRECT_PIN = "1191"  # 第一层PIN码
-CORRECT_PATTERN = [1, 6, 6, 4, 5]  # 第二层正确图案 (示例：1-2-3-4-5)
+CORRECT_PATTERN = [1, 6, 8, 4, 5]  # 第二层正确图案 (示例：1-2-3-4-5)
 ENCRYPTED_IP_INPUT = "421.499.553.03"  # 用户看到的加密IP
 CAESAR_SHIFT = 3  # 凯撒密码偏移量
 SYSTEM_STORED_IP = caesar_cipher_decrypt(ENCRYPTED_IP_INPUT, CAESAR_SHIFT)  # 系统存储的解密后真实IP
