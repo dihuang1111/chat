@@ -7,8 +7,8 @@ import re
 # Simulated user database (replace with real database in production)
 USER_DB = {
     "user1": {
-        "pincode": "123456",
-        "pattern": "1-2-5-8-9",  # Example pattern (grid positions)
+        "pincode": "133788",
+        "pattern": "1-5-5-6-9",  # Example pattern (grid positions)
         "face_data": "encoded_face_data"  # Placeholder for face recognition data
     }
 }
