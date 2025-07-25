@@ -36,9 +36,9 @@ def decrypt_ip(encrypted_ip):
 # Simulated user database updated without face_data
 USER_DB = {
     "myuser": {
-        "pincode": "1a2b3c",
-        "pattern": "4-5-5-8-9-34",
-        "allowed_ip": encrypt_ip("192.168.1.100")
+        "pincode": "abcdef",
+        "pattern": "1-2-5-8-9-34",
+        "allowed_ip": encrypt_ip("192.168.1.100")  # Encrypted with shift of 3
     }
 }
 
@@ -129,7 +129,7 @@ def main():
                 else:
                     st.session_state.status = "failure"
                     st.session_state.message = "Invalid pattern format. Use numbers separated by hyphens (e.g., 1-2-5-8-9-34)"
-d
+
     # Step 3: VM Browser Preview
     elif st.session_state.step == "vm_preview":
         st.subheader("Step 3: VM Browser Preview")
