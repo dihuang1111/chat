@@ -1,78 +1,62 @@
 import streamlit as st
+import docker
 import streamlit.components.v1 as components
-import subprocess
-import threading
 import time
-import requests
 
-class VNCServer:
+class NoVNCManager:
     def __init__(self):
-        self.vnc_process = None
-        self.novnc_process = None
+        self.client = docker.from_env()
+        self.container = None
     
-    def start_vnc_server(self):
-        # 启动VNC服务器 (需要安装tigervnc-standalone-server)
-        vnc_cmd = ["vncserver", ":1", "-geometry", "1280x720", "-depth", "24"]
-        self.vnc_process = subprocess.Popen(vnc_cmd)
-        
-        # 启动noVNC (需要下载noVNC)
-        novnc_cmd = ["python", "-m", "websockify", "--web=/path/to/noVNC", "6080", "localhost:5901"]
-        self.novnc_process = subprocess.Popen(novnc_cmd)
-        
-        return True
-    
-    def stop_servers(self):
-        if self.vnc_process:
-            self.vnc_process.terminate()
-        if self.novnc_process:
-            self.novnc_process.terminate()
-    
-    def is_running(self):
+    def start_vnc_container(self, image="dorowu/ubuntu-desktop-lxde-vnc:latest"):
         try:
-            response = requests.get("http://localhost:6080", timeout=2)
-            return response.status_code == 200
-        except:
+            # 启动包含noVNC的容器
+            self.container = self.client.containers.run(
+                image,
+                ports={'6080/tcp': 6080},
+                detach=True,
+                remove=True,
+                environment={
+                    'VNC_PASSWORD': 'password123',
+                    'RESOLUTION': '1280x720'
+                }
+            )
+            return True
+        except Exception as e:
+            st.error(f"Failed to start container: {e}")
             return False
+    
+    def stop_container(self):
+        if self.container:
+            self.container.stop()
 
 def main():
-    st.set_page_config(page_title="noVNC Browser", layout="wide")
-    st.title("🖥️ Remote Desktop Browser")
+    st.title("Streamlit noVNC Desktop")
     
-    if 'vnc_server' not in st.session_state:
-        st.session_state.vnc_server = VNCServer()
+    if 'vnc_manager' not in st.session_state:
+        st.session_state.vnc_manager = NoVNCManager()
     
-    # 控制面板
-    with st.container():
-        col1, col2, col3 = st.columns([1, 1, 2])
-        
-        with col1:
-            if st.button("🚀 Start VNC", type="primary"):
-                with st.spinner("Starting VNC server..."):
-                    if st.session_state.vnc_server.start_vnc_server():
-                        time.sleep(3)
-                        st.success("VNC server started!")
-                        st.rerun()
-        
-        with col2:
-            if st.button("⏹️ Stop VNC", type="secondary"):
-                st.session_state.vnc_server.stop_servers()
-                st.success("VNC server stopped!")
-                st.rerun()
-        
-        with col3:
-            status = "🟢 Running" if st.session_state.vnc_server.is_running() else "🔴 Stopped"
-            st.write(f"Status: {status}")
+    col1, col2 = st.columns(2)
     
-    # 显示VNC界面
-    if st.session_state.vnc_server.is_running():
-        st.markdown("---")
-        components.iframe(
-            "http://localhost:6080/vnc.html?autoconnect=true&resize=scale",
-            height=700,
-            scrolling=False
-        )
-    else:
-        st.info("Please start the VNC server to access the remote desktop")
+    with col1:
+        if st.button("Start Desktop"):
+            with st.spinner("Starting virtual desktop..."):
+                if st.session_state.vnc_manager.start_vnc_container():
+                    time.sleep(5)  # 等待容器启动
+                    st.success("Desktop started successfully!")
+                    st.session_state.desktop_running = True
+    
+    with col2:
+        if st.button("Stop Desktop"):
+            st.session_state.vnc_manager.stop_container()
+            st.session_state.desktop_running = False
+            st.success("Desktop stopped")
+    
+    # 显示noVNC界面
+    if st.session_state.get('desktop_running', False):
+        st.subheader("Remote Desktop")
+        components.iframe("http://localhost:6080/vnc.html?autoconnect=true", 
+                         height=600, scrolling=True)
 
 if __name__ == "__main__":
     main()
