@@ -37,239 +37,330 @@ def caesar_cipher_decrypt(text, shift):
     return result
 
 def create_vm_browser_interface():
-    """创建VM浏览器界面"""
+    """创建类似hyperbeam/invited的VM浏览器界面"""
     st.markdown("""
     <style>
-    .browser-container {
-        border: 2px solid #333;
-        border-radius: 10px;
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        padding: 10px;
-        margin: 10px 0;
+    .vm-browser-container {
+        background: #1a1a1a;
+        border-radius: 12px;
+        padding: 0;
+        margin: 20px 0;
+        box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+        overflow: hidden;
     }
-    .browser-header {
-        background: #2c3e50;
-        border-radius: 5px;
-        padding: 10px;
-        margin-bottom: 10px;
+    .vm-header {
+        background: linear-gradient(90deg, #2d3748, #4a5568);
+        padding: 12px 20px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        border-bottom: 1px solid #4a5568;
+    }
+    .vm-controls {
+        display: flex;
+        gap: 8px;
+        align-items: center;
+    }
+    .vm-btn {
+        background: #4299e1;
+        color: white;
+        border: none;
+        padding: 6px 12px;
+        border-radius: 6px;
+        font-size: 12px;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+    .vm-btn:hover {
+        background: #3182ce;
+        transform: translateY(-1px);
+    }
+    .vm-url-bar {
+        background: #2d3748;
+        color: white;
+        border: 1px solid #4a5568;
+        border-radius: 6px;
+        padding: 8px 12px;
+        min-width: 300px;
+        font-family: 'Courier New', monospace;
+    }
+    .vm-screen {
+        background: #000;
+        height: 500px;
+        position: relative;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        overflow: hidden;
+    }
+    .vm-loading {
+        color: #4299e1;
+        font-size: 18px;
+        animation: pulse 2s infinite;
+    }
+    @keyframes pulse {
+        0%, 100% { opacity: 0.5; }
+        50% { opacity: 1; }
+    }
+    .vm-viewer {
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(135deg, #1a202c, #2d3748);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        position: relative;
+    }
+    .vm-screen-content {
+        width: 90%;
+        height: 90%;
+        background: #f7fafc;
+        border-radius: 8px;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+        overflow: hidden;
+        position: relative;
+    }
+    .connection-indicator {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        background: #48bb78;
+        color: white;
+        padding: 4px 8px;
+        border-radius: 12px;
+        font-size: 10px;
+        z-index: 10;
+    }
+    .vm-taskbar {
+        background: #2d3748;
+        height: 40px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 0 15px;
+        border-top: 1px solid #4a5568;
+    }
+    .taskbar-left {
+        display: flex;
+        gap: 10px;
+        align-items: center;
+    }
+    .taskbar-right {
+        color: #a0aec0;
+        font-size: 12px;
+    }
+    .browser-window {
+        width: 100%;
+        height: calc(100% - 40px);
+        background: white;
+        position: relative;
+        overflow: hidden;
+    }
+    .browser-chrome {
+        background: #f1f5f9;
+        border-bottom: 1px solid #e2e8f0;
+        padding: 8px 15px;
         display: flex;
         align-items: center;
         gap: 10px;
     }
-    .browser-controls {
-        display: flex;
-        gap: 5px;
-    }
-    .control-btn {
-        width: 15px;
-        height: 15px;
-        border-radius: 50%;
-        border: none;
-        cursor: pointer;
-    }
-    .close-btn { background: #ff5f56; }
-    .minimize-btn { background: #ffbd2e; }
-    .maximize-btn { background: #27ca3f; }
-    .browser-viewport {
+    .browser-content {
+        height: calc(100% - 45px);
         background: white;
-        border-radius: 5px;
-        min-height: 600px;
+        overflow-y: auto;
         padding: 20px;
-        box-shadow: inset 0 0 20px rgba(0,0,0,0.1);
-    }
-    .url-bar {
-        background: #34495e;
-        color: white;
-        border: none;
-        border-radius: 20px;
-        padding: 8px 15px;
-        width: 70%;
-        margin: 0 10px;
-    }
-    .nav-btn {
-        background: #3498db;
-        color: white;
-        border: none;
-        border-radius: 5px;
-        padding: 5px 10px;
-        cursor: pointer;
-        margin: 0 2px;
-    }
-    .nav-btn:hover {
-        background: #2980b9;
-    }
-    .status-bar {
-        background: #ecf0f1;
-        padding: 5px 15px;
-        border-radius: 0 0 5px 5px;
-        font-size: 12px;
-        color: #7f8c8d;
     }
     </style>
     """, unsafe_allow_html=True)
     
-    st.markdown('<div class="browser-container">', unsafe_allow_html=True)
+    st.markdown('<div class="vm-browser-container">', unsafe_allow_html=True)
     
-    # 浏览器标题栏
+    # VM浏览器头部
+    col1, col2, col3, col4 = st.columns([3, 2, 2, 1])
+    with col1:
+        st.markdown('<div style="color: white; font-weight: bold; padding: 8px;">🖥️ VM Browser Session - hyperbeam.com</div>', unsafe_allow_html=True)
+    with col2:
+        if st.button("🔄 重新连接", key="reconnect"):
+            st.success("正在重新连接到VM...")
+    with col3:
+        if st.button("📱 切换设备", key="switch_device"):
+            st.info("设备视图已切换")
+    with col4:
+        if st.button("⚙️", key="vm_settings"):
+            st.info("VM设置面板")
+    
+    # VM屏幕显示区域
     st.markdown("""
-    <div class="browser-header">
-        <div class="browser-controls">
-            <div class="control-btn close-btn"></div>
-            <div class="control-btn minimize-btn"></div>
-            <div class="control-btn maximize-btn"></div>
+    <div class="vm-screen">
+        <div class="connection-indicator">🟢 已连接</div>
+        <div class="vm-viewer">
+            <div class="vm-screen-content">
+                <div class="browser-window">
+                    <div class="browser-chrome">
+                        <div style="display: flex; gap: 5px;">
+                            <div style="width: 12px; height: 12px; background: #ff5f57; border-radius: 50%;"></div>
+                            <div style="width: 12px; height: 12px; background: #ffbd2e; border-radius: 50%;"></div>
+                            <div style="width: 12px; height: 12px; background: #28ca42; border-radius: 50%;"></div>
+                        </div>
+                        <div style="flex: 1; margin: 0 15px;">
+                            <div style="background: white; border: 1px solid #d1d5db; border-radius: 6px; padding: 4px 12px; font-size: 14px;">
+                                🔒 """ + st.session_state.current_url + """
+                            </div>
+                        </div>
+                        <div style="display: flex; gap: 5px;">
+                            <div style="width: 20px; height: 20px; background: #e5e7eb; border-radius: 3px;"></div>
+                            <div style="width: 20px; height: 20px; background: #e5e7eb; border-radius: 3px;"></div>
+                        </div>
+                    </div>
+                    <div class="browser-content" id="vm-content">
+    """, unsafe_allow_html=True)
+    
+    # 显示网页内容
+    display_vm_webpage_content()
+    
+    st.markdown("""
+                    </div>
+                </div>
+            </div>
         </div>
-        <span style="color: white; font-weight: bold;">🔐 Secure VM Browser</span>
     </div>
     """, unsafe_allow_html=True)
     
-    # 导航栏
-    col1, col2, col3, col4, col5, col6 = st.columns([1, 1, 1, 6, 1, 1])
+    # VM控制面板
+    st.markdown("""
+    <div class="vm-taskbar">
+        <div class="taskbar-left">
+            <span style="color: #4299e1;">🖥️ Virtual Machine</span>
+            <span style="color: #68d391;">● Chrome Browser</span>
+            <span style="color: #f6ad55;">⚡ GPU加速</span>
+        </div>
+        <div class="taskbar-right">
+            FPS: 60 | CPU: 12% | RAM: 2.1GB | 延迟: 23ms
+        </div>
+    </div>
+    """, unsafe_allow_html=True)
     
+    st.markdown('</div>', unsafe_allow_html=True)
+    
+    # VM控制按钮
+    col1, col2, col3, col4, col5 = st.columns(5)
     with col1:
-        if st.button("⬅️", help="后退"):
-            if st.session_state.browser_history:
-                st.session_state.current_url = st.session_state.browser_history.pop()
-                st.rerun()
-    
-    with col2:
-        if st.button("➡️", help="前进"):
-            pass  # 前进功能可以根据需要实现
-    
-    with col3:
-        if st.button("🔄", help="刷新"):
+        new_url = st.text_input("🌐 导航到", value=st.session_state.current_url, key="vm_nav")
+        if st.button("Go", key="vm_go"):
+            st.session_state.current_url = new_url
             st.rerun()
     
-    with col4:
-        new_url = st.text_input("", 
-                                value=st.session_state.current_url, 
-                                placeholder="输入网址...",
-                                key="url_input")
-    
-    with col5:
-        if st.button("🏠", help="主页"):
-            st.session_state.browser_history.append(st.session_state.current_url)
+    with col2:
+        st.markdown("<br>", unsafe_allow_html=True)
+        if st.button("🏠 主页", key="vm_home"):
             st.session_state.current_url = "https://www.google.com"
             st.rerun()
     
-    with col6:
-        if st.button("Go"):
-            if new_url != st.session_state.current_url:
-                st.session_state.browser_history.append(st.session_state.current_url)
-                st.session_state.current_url = new_url
-                st.rerun()
+    with col3:
+        st.markdown("<br>", unsafe_allow_html=True)
+        if st.button("🔄 刷新", key="vm_refresh"):
+            st.rerun()
     
-    # 浏览器视口
-    st.markdown('<div class="browser-viewport">', unsafe_allow_html=True)
+    with col4:
+        st.markdown("<br>", unsafe_allow_html=True)
+        if st.button("📷 截图", key="vm_screenshot"):
+            st.success("VM屏幕截图已保存")
     
-    # 模拟网页内容显示
-    if st.session_state.current_url:
-        st.markdown(f"### 🌐 正在浏览: {st.session_state.current_url}")
-        
-        # 根据URL显示不同内容
-        if "google.com" in st.session_state.current_url.lower():
-            display_google_page()
-        elif "youtube.com" in st.session_state.current_url.lower():
-            display_youtube_page()
-        elif "github.com" in st.session_state.current_url.lower():
-            display_github_page()
-        else:
-            display_generic_page()
-    
-    st.markdown('</div>', unsafe_allow_html=True)
-    
-    # 状态栏
-    st.markdown(f"""
-    <div class="status-bar">
-        📡 连接状态: 安全连接 | 🔒 SSL证书: 有效 | ⏰ 加载时间: 0.5s | 📍 当前: {st.session_state.current_url}
-    </div>
-    """, unsafe_allow_html=True)
-    
-    st.markdown('</div>', unsafe_allow_html=True)
+    with col5:
+        st.markdown("<br>", unsafe_allow_html=True)
+        if st.button("🎮 全屏", key="vm_fullscreen"):
+            st.info("VM已切换到全屏模式")
 
-def display_google_page():
-    """显示Google页面模拟"""
-    st.markdown("""
-    <div style="text-align: center; padding: 50px;">
-        <h1 style="color: #4285f4; font-size: 80px; margin: 0;">Google</h1>
-        <div style="margin: 30px 0;">
-            <input type="text" placeholder="搜索 Google 或输入网址" 
-                   style="width: 400px; padding: 12px; border: 1px solid #ddd; border-radius: 25px; outline: none;">
-        </div>
-        <div>
-            <button style="background: #f8f9fa; border: 1px solid #f8f9fa; border-radius: 4px; padding: 10px 20px; margin: 0 5px;">Google 搜索</button>
-            <button style="background: #f8f9fa; border: 1px solid #f8f9fa; border-radius: 4px; padding: 10px 20px; margin: 0 5px;">手气不错</button>
-        </div>
-    </div>
-    """, unsafe_allow_html=True)
-
-def display_youtube_page():
-    """显示YouTube页面模拟"""
-    st.markdown("""
-    <div style="background: #0f0f0f; color: white; padding: 20px; border-radius: 10px;">
-        <h2 style="color: #ff0000;">📺 YouTube</h2>
-        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; margin-top: 20px;">
-            <div style="background: #1a1a1a; padding: 15px; border-radius: 8px;">
-                <div style="background: #333; height: 150px; border-radius: 5px; display: flex; align-items: center; justify-content: center;">
-                    📹 视频缩略图
+def display_vm_webpage_content():
+    """在VM环境中显示网页内容"""
+    current_url = st.session_state.current_url.lower()
+    
+    if "google.com" in current_url:
+        st.markdown("""
+        <div style="text-align: center; padding: 80px 20px;">
+            <div style="font-size: 90px; color: #4285f4; margin-bottom: 30px; font-weight: 300;">
+                G<span style="color: #ea4335;">o</span><span style="color: #fbbc05;">o</span><span style="color: #4285f4;">g</span><span style="color: #34a853;">l</span><span style="color: #ea4335;">e</span>
+            </div>
+            <div style="margin: 30px 0;">
+                <div style="width: 500px; margin: 0 auto; position: relative;">
+                    <input type="text" placeholder="在 Google 上搜索，或者输入一个网址" 
+                           style="width: 100%; padding: 12px 45px 12px 15px; border: 1px solid #dfe1e5; border-radius: 24px; outline: none; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+                    <div style="position: absolute; right: 15px; top: 50%; transform: translateY(-50%);">🔍</div>
                 </div>
-                <h4>示例视频标题 1</h4>
-                <p style="color: #aaa;">频道名称 • 100万次观看 • 1天前</p>
             </div>
-            <div style="background: #1a1a1a; padding: 15px; border-radius: 8px;">
-                <div style="background: #333; height: 150px; border-radius: 5px; display: flex; align-items: center; justify-content: center;">
-                    📹 视频缩略图
-                </div>
-                <h4>示例视频标题 2</h4>
-                <p style="color: #aaa;">频道名称 • 500万次观看 • 3天前</p>
+            <div style="margin-top: 30px;">
+                <button style="background: #f8f9fa; border: 1px solid #f8f9fa; border-radius: 4px; padding: 10px 20px; margin: 0 5px; cursor: pointer;">Google 搜索</button>
+                <button style="background: #f8f9fa; border: 1px solid #f8f9fa; border-radius: 4px; padding: 10px 20px; margin: 0 5px; cursor: pointer;">手气不错</button>
             </div>
         </div>
-    </div>
-    """, unsafe_allow_html=True)
-
-def display_github_page():
-    """显示GitHub页面模拟"""
-    st.markdown("""
-    <div style="background: #0d1117; color: white; padding: 20px; border-radius: 10px;">
-        <h2 style="color: white;">🐙 GitHub</h2>
-        <div style="background: #161b22; padding: 20px; border-radius: 8px; margin: 20px 0;">
-            <h3>📁 示例代码仓库</h3>
-            <div style="display: flex; gap: 20px; margin: 15px 0;">
-                <span style="background: #238636; padding: 5px 10px; border-radius: 15px; font-size: 12px;">Python</span>
-                <span style="color: #f85149;">⭐ 1.2k</span>
-                <span style="color: #7d8590;">🍴 234</span>
-            </div>
-            <p style="color: #e6edf3;">这是一个示例代码仓库的描述信息...</p>
-            <div style="margin-top: 15px;">
-                <button style="background: #238636; color: white; border: none; padding: 8px 16px; border-radius: 6px; margin-right: 10px;">📥 Code</button>
-                <button style="background: #21262d; color: white; border: 1px solid #30363d; padding: 8px 16px; border-radius: 6px;">⭐ Star</button>
-            </div>
-        </div>
-    </div>
-    """, unsafe_allow_html=True)
-
-def display_generic_page():
-    """显示通用页面"""
-    st.markdown(f"""
-    <div style="background: linear-gradient(135deg, #74b9ff, #0984e3); color: white; padding: 30px; border-radius: 10px; text-align: center;">
-        <h2>🌐 网页内容模拟</h2>
-        <p>当前正在访问: <strong>{st.session_state.current_url}</strong></p>
-        <div style="background: rgba(255,255,255,0.1); padding: 20px; border-radius: 8px; margin: 20px 0;">
-            <h3>页面内容</h3>
-            <p>这里显示网页的模拟内容。在实际的VM浏览器中，这里会显示真实的网页内容。</p>
-            <div style="display: flex; justify-content: center; gap: 15px; margin-top: 20px;">
-                <div style="background: rgba(255,255,255,0.2); padding: 15px; border-radius: 5px; width: 150px;">
-                    <h4>功能模块 1</h4>
-                    <p>模拟内容</p>
+        """, unsafe_allow_html=True)
+    
+    elif "youtube.com" in current_url:
+        st.markdown("""
+        <div style="background: #0f0f0f; color: white; padding: 20px; min-height: 300px;">
+            <div style="display: flex; align-items: center; padding-bottom: 20px; border-bottom: 1px solid #333;">
+                <div style="font-size: 24px; color: #ff0000; font-weight: bold;">📺 YouTube</div>
+                <div style="flex: 1; margin: 0 20px;">
+                    <input type="text" placeholder="搜索" style="width: 100%; padding: 8px 15px; background: #121212; border: 1px solid #333; border-radius: 2px; color: white;">
                 </div>
-                <div style="background: rgba(255,255,255,0.2); padding: 15px; border-radius: 5px; width: 150px;">
-                    <h4>功能模块 2</h4>
-                    <p>模拟内容</p>
+            </div>
+            <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; margin-top: 20px;">
+                <div style="background: #1a1a1a; border-radius: 8px; overflow: hidden;">
+                    <div style="background: #333; height: 120px; display: flex; align-items: center; justify-content: center; color: #666;">
+                        ▶️ 视频缩略图
+                    </div>
+                    <div style="padding: 12px;">
+                        <h4 style="margin: 0 0 8px 0; font-size: 14px;">示例视频标题 - 技术教程</h4>
+                        <p style="color: #aaa; font-size: 12px; margin: 0;">TechChannel • 1.2M views • 2 days ago</p>
+                    </div>
+                </div>
+                <div style="background: #1a1a1a; border-radius: 8px; overflow: hidden;">
+                    <div style="background: #333; height: 120px; display: flex; align-items: center; justify-content: center; color: #666;">
+                        ▶️ 视频缩略图
+                    </div>
+                    <div style="padding: 12px;">
+                        <h4 style="margin: 0 0 8px 0; font-size: 14px;">编程实战项目分享</h4>
+                        <p style="color: #aaa; font-size: 12px; margin: 0;">CodeMaster • 856K views • 1 week ago</p>
+                    </div>
+                </div>
+                <div style="background: #1a1a1a; border-radius: 8px; overflow: hidden;">
+                    <div style="background: #333; height: 120px; display: flex; align-items: center; justify-content: center; color: #666;">
+                        ▶️ 视频缩略图
+                    </div>
+                    <div style="padding: 12px;">
+                        <h4 style="margin: 0 0 8px 0; font-size: 14px;">AI技术最新发展</h4>
+                        <p style="color: #aaa; font-size: 12px; margin: 0;">AI News • 2.3M views • 3 days ago</p>
+                    </div>
                 </div>
             </div>
         </div>
-        <p style="font-size: 14px; opacity: 0.8;">💡 提示: 这是一个安全的VM浏览环境，所有网络活动都经过加密和隔离处理。</p>
-    </div>
-    """, unsafe_allow_html=True)
+        """, unsafe_allow_html=True)
+    
+    else:
+        st.markdown(f"""
+        <div style="padding: 40px; text-align: center; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border-radius: 10px;">
+            <h2 style="margin-bottom: 20px;">🌐 正在VM中加载网页</h2>
+            <div style="background: rgba(255,255,255,0.1); padding: 30px; border-radius: 8px; margin: 20px 0;">
+                <div style="font-size: 18px; margin-bottom: 15px;">当前访问: {st.session_state.current_url}</div>
+                <div style="display: flex; justify-content: center; align-items: center; gap: 20px;">
+                    <div style="width: 60px; height: 60px; border: 3px solid rgba(255,255,255,0.3); border-top-color: white; border-radius: 50%; animation: spin 1s linear infinite;"></div>
+                    <div>正在安全的VM环境中加载页面内容...</div>
+                </div>
+            </div>
+            <div style="font-size: 14px; opacity: 0.8;">
+                🔒 所有网络流量均通过加密隧道传输<br>
+                🛡️ VM环境完全隔离，确保主机安全
+            </div>
+        </div>
+        <style>
+        @keyframes spin {{
+            0% {{ transform: rotate(0deg); }}
+            100% {{ transform: rotate(360deg); }}
+        }}
+        </style>
+        """, unsafe_allow_html=True)
     """验证IP地址格式"""
     pattern = r'^(\d{1,3}\.){3}\d{1,3}$'
     if re.match(pattern, ip):
@@ -293,12 +384,12 @@ if 'current_url' not in st.session_state:
 if 'browser_history' not in st.session_state:
     st.session_state.browser_history = []
 
-# 配置信息
-CORRECT_PIN = "1191"  # 第一层PIN码
-CORRECT_PATTERN = [1, 6, 8, 4, 5]  # 第二层正确图案 (示例：1-2-3-4-5)
-ENCRYPTED_IP_INPUT = "421.499.553.03"  # 用户看到的加密IP
-CAESAR_SHIFT = 3  # 凯撒密码偏移量
-SYSTEM_STORED_IP = caesar_cipher_decrypt(ENCRYPTED_IP_INPUT, CAESAR_SHIFT)  # 系统存储的解密后真实IP
+# 配置信息 (实际部署时应存储在安全的配置文件中)
+CORRECT_PIN = "1234"  # 实际使用时请修改
+CORRECT_PATTERN = [1, 2, 3, 4, 5]  # 实际使用时请修改
+ENCRYPTED_IP_INPUT = "421.499.553.03"  # 加密后的IP地址
+CAESAR_SHIFT = 3
+SYSTEM_STORED_IP = "188.166.220.70"  # 解密后的真实IP (系统内部存储)
 MAX_ATTEMPTS = 3
 
 # 页面标题
@@ -543,22 +634,23 @@ elif st.session_state.authentication_stage == 3:
 
 # 侧边栏信息
 with st.sidebar:
-    st.header("🛡️ 安全信息")
-    st.write("**系统配置:**")
-    st.write(f"- PIN码: {'*' * len(CORRECT_PIN)}")
-    st.write(f"- 图案: {' → '.join(map(str, CORRECT_PATTERN))}")
-    st.write(f"- 显示的加密IP: {ENCRYPTED_IP_INPUT}")
-    st.write(f"- 系统存储的真实IP: {SYSTEM_STORED_IP}")
-    st.write(f"- 解密偏移量: {CAESAR_SHIFT}")
+    st.header("🛡️ 系统状态")
+    if st.session_state.authenticated:
+        st.success("✅ 已认证")
+        st.write("🔒 所有安全层级已通过")
+    else:
+        st.warning("⚠️ 未认证")
+        st.write(f"当前阶段: {st.session_state.authentication_stage}/3")
     
     st.markdown("---")
     st.write("**安全特性:**")
     st.write("- 多层认证保护")
-    st.write("- 失败次数限制")
+    st.write("- 失败次数限制") 
     st.write("- IP地址加密隐藏")
     st.write("- 凯撒密码保护")
+    st.write("- VM浏览器隔离")
     
-    if st.button("🔧 管理员重置"):
+    if st.button("🔧 系统重置"):
         st.session_state.authentication_stage = 1
         st.session_state.attempts = 0
         st.session_state.locked = False
